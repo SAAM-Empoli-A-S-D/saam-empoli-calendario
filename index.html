@@ -1,0 +1,508 @@
+<meta charset="UTF-8">
+<title>SAAM Empoli — Programma 2026/2027</title>
+<style>
+  :root{
+    --bg:#ECE6D2;
+    --surface:#F5F0E1;
+    --surface-muted:#DED4B6;
+    --ink:#2A2317;
+    --ink-soft:#5B5340;
+    --line:#C9BD98;
+    --steel:#3B5866;
+    --steel-soft:#6E8892;
+    --brass:#8C5A22;
+    --brass-soft:#C89B5C;
+    --rust:#7A3327;
+    --rust-soft:#B97B67;
+    --shadow: 0 1px 2px rgba(42,35,23,.08), 0 4px 14px rgba(42,35,23,.06);
+    color-scheme: light dark;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#14171A;
+      --surface:#1D2126;
+      --surface-muted:#262B31;
+      --ink:#E7E0C9;
+      --ink-soft:#A9A28C;
+      --line:#343A41;
+      --steel:#86AEBD;
+      --steel-soft:#5A7B87;
+      --brass:#D8A857;
+      --brass-soft:#9C7534;
+      --rust:#C9846F;
+      --rust-soft:#8C4A3B;
+      --shadow: 0 1px 2px rgba(0,0,0,.35), 0 6px 18px rgba(0,0,0,.3);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#14171A; --surface:#1D2126; --surface-muted:#262B31; --ink:#E7E0C9; --ink-soft:#A9A28C;
+    --line:#343A41; --steel:#86AEBD; --steel-soft:#5A7B87; --brass:#D8A857; --brass-soft:#9C7534;
+    --rust:#C9846F; --rust-soft:#8C4A3B; --shadow: 0 1px 2px rgba(0,0,0,.35), 0 6px 18px rgba(0,0,0,.3);
+  }
+  :root[data-theme="light"]{
+    --bg:#ECE6D2; --surface:#F5F0E1; --surface-muted:#DED4B6; --ink:#2A2317; --ink-soft:#5B5340;
+    --line:#C9BD98; --steel:#3B5866; --steel-soft:#6E8892; --brass:#8C5A22; --brass-soft:#C89B5C;
+    --rust:#7A3327; --rust-soft:#B97B67; --shadow: 0 1px 2px rgba(42,35,23,.08), 0 4px 14px rgba(42,35,23,.06);
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .page{max-width:920px; margin:0 auto; padding:0 0 64px;}
+  h1,h2,h3{
+    font-family:"Iowan Old Style","Palatino Linotype","Sitka Small",Georgia,"Times New Roman",serif;
+    font-weight:600; text-wrap:balance; margin:0; color:var(--ink);
+  }
+  a{color:var(--steel);}
+  button{font-family:inherit;}
+  :focus-visible{outline:2px solid var(--steel); outline-offset:2px;}
+
+  /* ---------- Top bar ---------- */
+  .topbar{
+    position:sticky; top:0; z-index:20; background:var(--bg);
+    border-bottom:1px solid var(--line); padding:20px 20px 14px;
+    box-shadow:var(--shadow);
+  }
+  .brand-row{display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap;}
+  .brand-eyebrow{
+    font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--brass);
+    font-weight:700; margin:0 0 2px;
+  }
+  .brand-title{font-size:clamp(22px,4.4vw,30px); line-height:1.15;}
+  .brand-sub{font-size:13px; color:var(--ink-soft); margin-top:2px;}
+
+  .stats-row{display:flex; gap:10px; margin-top:16px; flex-wrap:wrap;}
+  .stat{
+    background:var(--surface); border:1px solid var(--line); border-radius:3px;
+    padding:8px 14px; min-width:112px; box-shadow:var(--shadow);
+  }
+  .stat-num{font-variant-numeric:tabular-nums; font-size:19px; font-weight:700; color:var(--steel);}
+  .stat-label{font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft);}
+  .stat.next .stat-num{color:var(--brass); font-size:14px; font-family:"Iowan Old Style","Palatino Linotype",Georgia,serif;}
+
+  .legend-row{display:flex; gap:14px; flex-wrap:wrap; margin-top:16px; font-size:12px; color:var(--ink-soft);}
+  .legend-item{display:flex; align-items:center; gap:6px;}
+  .swatch{width:12px; height:12px; border-radius:2px; flex:none; display:inline-block;}
+  .sw-lesson{background:var(--steel);}
+  .sw-today{background:var(--surface); border:2px solid var(--brass);}
+  .sw-past{background:var(--steel-soft); opacity:.5;}
+  .sw-closed{background:repeating-linear-gradient(45deg,var(--rust-soft),var(--rust-soft) 2px,transparent 2px,transparent 5px); border:1px solid var(--rust-soft);}
+  .sw-event{background:var(--brass); clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);}
+
+  .control-row{display:flex; gap:16px; margin-top:16px; flex-wrap:wrap; align-items:center;}
+  .chip-group{display:flex; gap:6px;}
+  .chip{
+    border:1px solid var(--line); background:var(--surface); color:var(--ink-soft);
+    border-radius:20px; padding:5px 13px; font-size:12.5px; cursor:pointer;
+  }
+  .chip[aria-pressed="true"]{background:var(--steel); border-color:var(--steel); color:var(--surface); font-weight:600;}
+
+  .month-nav{display:flex; gap:6px; overflow-x:auto; padding-bottom:2px; flex:1 1 260px;}
+  .month-nav a{
+    flex:none; text-decoration:none; font-size:12px; color:var(--ink-soft);
+    border:1px solid var(--line); border-radius:20px; padding:5px 11px; background:var(--surface);
+  }
+  .month-nav a:hover{color:var(--steel); border-color:var(--steel);}
+
+  /* ---------- Month sections ---------- */
+  .month{padding:30px 20px 6px; scroll-margin-top:190px;}
+  .month h2{font-size:20px; margin-bottom:2px;}
+  .month .month-count{font-size:12px; color:var(--ink-soft); margin-bottom:12px;}
+  .weekday-row{display:grid; grid-template-columns:repeat(7,1fr); gap:6px; margin-bottom:6px;}
+  .weekday-row span{
+    font-size:10.5px; text-align:center; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft);
+  }
+  .grid{display:grid; grid-template-columns:repeat(7,1fr); gap:6px;}
+
+  .cell{
+    position:relative; min-height:clamp(46px,9vw,68px); border-radius:4px;
+    border:1px solid transparent; background:transparent; padding:6px 6px 4px; text-align:left;
+    font-family:inherit; color:var(--ink); cursor:default;
+  }
+  .cell.blank{visibility:hidden;}
+  .cell .num{font-size:13px; font-variant-numeric:tabular-nums; font-weight:600;}
+
+  .cell.plain{color:var(--ink-soft);}
+  .cell.plain .num{font-weight:500;}
+
+  .cell.training{
+    background:var(--surface); border-color:var(--line); box-shadow:var(--shadow); cursor:pointer;
+  }
+  .cell.training::after{
+    content:""; position:absolute; left:6px; right:6px; bottom:5px; height:3px; border-radius:2px;
+    background:var(--steel);
+  }
+  .cell.training:hover{border-color:var(--steel);}
+  .cell.training.past{opacity:.5;}
+  .cell.training.today{border-color:var(--brass); border-width:2px; box-shadow:0 0 0 2px color-mix(in srgb, var(--brass) 25%, transparent);}
+  .cell.training.today .num{color:var(--brass); font-weight:700;}
+
+  .cell.closed{
+    background:repeating-linear-gradient(45deg,var(--surface-muted),var(--surface-muted) 5px,color-mix(in srgb, var(--rust-soft) 22%, var(--surface-muted)) 5px,color-mix(in srgb, var(--rust-soft) 22%, var(--surface-muted)) 9px);
+    border-color:var(--line); color:var(--ink-soft);
+  }
+  .cell.closed .num{opacity:.75;}
+  .cell.closed .tag{
+    position:absolute; left:6px; bottom:4px; font-size:8.5px; letter-spacing:.06em; text-transform:uppercase;
+    color:var(--rust); font-weight:700;
+  }
+
+  .cell .event-mark{
+    position:absolute; top:6px; right:6px; width:9px; height:9px; background:var(--brass);
+    clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);
+  }
+
+  :root[data-filter="allenamenti"] .events-section{display:none;}
+  :root[data-filter="eventi"] .cell.training{opacity:.3;}
+  :root[data-filter="eventi"] .cell.training.today{opacity:1;}
+
+  /* ---------- Modal ---------- */
+  .modal-backdrop{
+    position:fixed; inset:0; background:rgba(20,17,10,.55); display:flex; align-items:flex-end;
+    justify-content:center; z-index:50; padding:0;
+  }
+  .modal-backdrop[hidden]{display:none;}
+  @media(min-width:640px){ .modal-backdrop{align-items:center; padding:20px;} }
+  .modal{
+    background:var(--surface); width:100%; max-width:440px; border-radius:10px 10px 0 0;
+    padding:22px 22px 26px; box-shadow:0 10px 40px rgba(0,0,0,.35); position:relative;
+    border:1px solid var(--line); max-height:85vh; overflow-y:auto;
+  }
+  @media(min-width:640px){ .modal{border-radius:10px;} }
+  .modal-close{
+    position:absolute; top:12px; right:12px; background:none; border:none; font-size:20px;
+    color:var(--ink-soft); cursor:pointer; line-height:1; padding:6px;
+  }
+  .modal-eyebrow{font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--brass); font-weight:700; margin:0 0 4px;}
+  .modal h3{font-size:20px; margin-bottom:16px; padding-right:20px;}
+  .modal-fields{margin:0; display:flex; flex-direction:column; gap:12px;}
+  .modal-fields dt{
+    font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft); font-weight:700;
+    margin-bottom:3px;
+  }
+  .modal-fields dd{margin:0; font-size:14.5px; color:var(--ink);}
+  .modal-fields dd.placeholder{color:var(--ink-soft); font-style:italic;}
+  .modal-fields .fixed{color:var(--steel); font-weight:600;}
+
+  /* ---------- Events ---------- */
+  .events-section{padding:36px 20px 10px; margin-top:14px; border-top:1px solid var(--line);}
+  .events-empty{
+    background:var(--surface); border:1px dashed var(--line); border-radius:6px; padding:22px;
+    color:var(--ink-soft); font-size:13.5px; margin-top:14px;
+  }
+  .events-section h2{font-size:20px;}
+  .events-section .sub{font-size:13px; color:var(--ink-soft); margin-top:4px; max-width:60ch;}
+  .event-list{display:flex; flex-direction:column; gap:10px; margin-top:14px;}
+  .event-card{
+    background:var(--surface); border:1px solid var(--line); border-radius:6px; padding:12px 14px;
+    display:flex; gap:14px; align-items:baseline; box-shadow:var(--shadow);
+  }
+  .event-date{font-size:12px; color:var(--brass); font-weight:700; white-space:nowrap;}
+  .event-title{font-weight:600;}
+  .event-place{font-size:12px; color:var(--ink-soft);}
+
+  footer{padding:26px 20px 4px; font-size:11.5px; color:var(--ink-soft);}
+</style>
+
+<div class="page">
+  <header class="topbar">
+    <div class="brand-row">
+      <div>
+        <p class="brand-eyebrow">SAAM Empoli · A.S.D. — Scherma Storica</p>
+        <h1 class="brand-title">Programma Stagione 2026 / 2027</h1>
+        <p class="brand-sub">Lezioni lunedì · mercoledì · venerdì, 20:30–22:30</p>
+      </div>
+    </div>
+
+    <div class="stats-row" id="statsRow"></div>
+
+    <div class="legend-row">
+      <span class="legend-item"><span class="swatch sw-lesson"></span>Lezione</span>
+      <span class="legend-item"><span class="swatch sw-today"></span>Oggi</span>
+      <span class="legend-item"><span class="swatch sw-past"></span>Svolta</span>
+      <span class="legend-item"><span class="swatch sw-closed"></span>Festivo — chiuso</span>
+      <span class="legend-item"><span class="swatch sw-event"></span>Evento</span>
+    </div>
+
+    <div class="control-row">
+      <div class="chip-group" id="filterChips">
+        <button class="chip" data-filter="tutto" aria-pressed="true">Tutto</button>
+        <button class="chip" data-filter="allenamenti" aria-pressed="false">Allenamenti</button>
+        <button class="chip" data-filter="eventi" aria-pressed="false">Eventi</button>
+      </div>
+      <nav class="month-nav" id="monthNav" aria-label="Vai al mese"></nav>
+    </div>
+  </header>
+
+  <main id="months"></main>
+
+  <section class="events-section" id="eventiSection">
+    <h2>Calendario Eventi</h2>
+    <p class="sub">Stage, gare e altre attività dell'associazione. Verrà aggiornato nel corso della stagione.</p>
+    <div id="eventiContent"></div>
+  </section>
+
+  <footer>SAAM Empoli A.S.D. — Programma generato per la stagione 2026/2027. Le voci di allenamento fisico, tecnico e teorico sono da definire.</footer>
+</div>
+
+<div class="modal-backdrop" id="modalBackdrop" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <button class="modal-close" id="modalClose" aria-label="Chiudi">×</button>
+    <p class="modal-eyebrow" id="modalEyebrow"></p>
+    <h3 id="modalTitle"></h3>
+    <dl class="modal-fields" id="modalFields"></dl>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- Data ----------
+  var HOLIDAYS = {
+    "2026-12-25": "Natale",
+    "2027-01-01": "Capodanno",
+    "2027-01-06": "Epifania",
+    "2027-03-29": "Pasquetta",
+    "2027-06-02": "Festa della Repubblica"
+  };
+  var EVENTS = []; // { date:"YYYY-MM-DD", title:"", place:"", desc:"" } — da popolare in seguito
+  var LESSON_OVERRIDES = {}; // date -> { fisica, tecnica, teoria } — da popolare in seguito
+
+  var ITALIAN_MONTHS = ["Gennaio","Febbraio","Marzo","Aprile","Maggio","Giugno","Luglio","Agosto","Settembre","Ottobre","Novembre","Dicembre"];
+  var WEEKDAY_LABELS = ["Lun","Mar","Mer","Gio","Ven","Sab","Dom"];
+  var WEEKDAY_FULL = ["domenica","lunedì","martedì","mercoledì","giovedì","venerdì","sabato"];
+
+  function pad(n){ return (n<10?"0":"")+n; }
+  function iso(d){ return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate()); }
+  function isTrainingDow(dow){ return dow===1||dow===3||dow===5; }
+
+  var today = new Date();
+  today.setHours(0,0,0,0);
+  var todayIso = iso(today);
+
+  var seasonMonths = [];
+  (function(){
+    var cursor = new Date(2026,8,1);
+    for(var i=0;i<10;i++){
+      seasonMonths.push({year:cursor.getFullYear(), month:cursor.getMonth()});
+      cursor = new Date(cursor.getFullYear(), cursor.getMonth()+1, 1);
+    }
+  })();
+
+  // ---------- Compute all lesson dates for stats ----------
+  var lessonDates = [];
+  seasonMonths.forEach(function(sm){
+    var daysInMonth = new Date(sm.year, sm.month+1, 0).getDate();
+    for(var d=1; d<=daysInMonth; d++){
+      var date = new Date(sm.year, sm.month, d);
+      var key = iso(date);
+      if(isTrainingDow(date.getDay()) && !HOLIDAYS[key]){
+        lessonDates.push(key);
+      }
+    }
+  });
+  var pastCount = lessonDates.filter(function(k){ return k < todayIso; }).length;
+  var nextLesson = lessonDates.filter(function(k){ return k >= todayIso; })[0];
+
+  function formatLongDate(iso){
+    var parts = iso.split("-").map(Number);
+    var d = new Date(parts[0], parts[1]-1, parts[2]);
+    var wd = WEEKDAY_FULL[d.getDay()];
+    return wd.charAt(0).toUpperCase()+wd.slice(1)+" "+d.getDate()+" "+ITALIAN_MONTHS[d.getMonth()].toLowerCase()+" "+d.getFullYear();
+  }
+
+  // ---------- Stats row ----------
+  var statsRow = document.getElementById("statsRow");
+  function stat(num, label, cls){
+    var div = document.createElement("div");
+    div.className = "stat" + (cls?" "+cls:"");
+    div.innerHTML = '<div class="stat-num">'+num+'</div><div class="stat-label">'+label+'</div>';
+    return div;
+  }
+  statsRow.appendChild(stat(lessonDates.length, "Lezioni totali"));
+  statsRow.appendChild(stat(pastCount, "Già svolte"));
+  statsRow.appendChild(stat(lessonDates.length-pastCount, "Da svolgere"));
+  statsRow.appendChild(stat(nextLesson ? formatLongDate(nextLesson) : "Stagione conclusa", "Prossima lezione", "next"));
+
+  // ---------- Month nav ----------
+  var monthNav = document.getElementById("monthNav");
+  seasonMonths.forEach(function(sm){
+    var a = document.createElement("a");
+    a.href = "#m-"+sm.year+"-"+pad(sm.month+1);
+    a.textContent = ITALIAN_MONTHS[sm.month].slice(0,3)+" '"+String(sm.year).slice(2);
+    monthNav.appendChild(a);
+  });
+
+  // ---------- Build months ----------
+  var monthsRoot = document.getElementById("months");
+  var lessonIndex = {}; // date -> ordinal number in season
+  lessonDates.forEach(function(k, i){ lessonIndex[k] = i+1; });
+
+  seasonMonths.forEach(function(sm){
+    var section = document.createElement("section");
+    section.className = "month";
+    section.id = "m-"+sm.year+"-"+pad(sm.month+1);
+
+    var monthLessons = lessonDates.filter(function(k){
+      return k.slice(0,7) === sm.year+"-"+pad(sm.month+1);
+    }).length;
+
+    var h2 = document.createElement("h2");
+    h2.textContent = ITALIAN_MONTHS[sm.month]+" "+sm.year;
+    var mc = document.createElement("div");
+    mc.className = "month-count";
+    mc.textContent = monthLessons + (monthLessons===1 ? " lezione in programma" : " lezioni in programma");
+    section.appendChild(h2);
+    section.appendChild(mc);
+
+    var wdRow = document.createElement("div");
+    wdRow.className = "weekday-row";
+    WEEKDAY_LABELS.forEach(function(w){
+      var s = document.createElement("span");
+      s.textContent = w;
+      wdRow.appendChild(s);
+    });
+    section.appendChild(wdRow);
+
+    var grid = document.createElement("div");
+    grid.className = "grid";
+
+    var first = new Date(sm.year, sm.month, 1);
+    var startOffset = (first.getDay()+6)%7; // Monday=0
+    var daysInMonth = new Date(sm.year, sm.month+1, 0).getDate();
+    var totalCells = Math.ceil((startOffset+daysInMonth)/7)*7;
+
+    for(var i=0;i<totalCells;i++){
+      var dayNum = i-startOffset+1;
+      if(dayNum<1 || dayNum>daysInMonth){
+        var blank = document.createElement("div");
+        blank.className = "cell blank";
+        grid.appendChild(blank);
+        continue;
+      }
+      var date = new Date(sm.year, sm.month, dayNum);
+      var key = iso(date);
+      var dow = date.getDay();
+      var isHoliday = isTrainingDow(dow) && HOLIDAYS[key];
+      var isTraining = isTrainingDow(dow) && !HOLIDAYS[key];
+      var isPast = key < todayIso;
+      var isToday = key === todayIso;
+      var hasEvent = EVENTS.some(function(e){ return e.date===key; });
+
+      var cell;
+      if(isTraining){
+        cell = document.createElement("button");
+        cell.type = "button";
+        cell.className = "cell training" + (isPast?" past":"") + (isToday?" today":"");
+        cell.setAttribute("data-date", key);
+        cell.addEventListener("click", function(){ openModal(this.getAttribute("data-date")); });
+      } else if(isHoliday){
+        cell = document.createElement("div");
+        cell.className = "cell closed";
+      } else {
+        cell = document.createElement("div");
+        cell.className = "cell plain";
+      }
+
+      var num = document.createElement("span");
+      num.className = "num";
+      num.textContent = dayNum;
+      cell.appendChild(num);
+
+      if(isHoliday){
+        var tag = document.createElement("span");
+        tag.className = "tag";
+        tag.textContent = "chiuso";
+        cell.appendChild(tag);
+      }
+      if(hasEvent){
+        var mark = document.createElement("span");
+        mark.className = "event-mark";
+        cell.appendChild(mark);
+      }
+
+      grid.appendChild(cell);
+    }
+
+    section.appendChild(grid);
+    monthsRoot.appendChild(section);
+  });
+
+  // ---------- Events section ----------
+  var eventiContent = document.getElementById("eventiContent");
+  if(EVENTS.length === 0){
+    var empty = document.createElement("div");
+    empty.className = "events-empty";
+    empty.textContent = "Nessun evento in programma al momento. Stage, gare e altre attività verranno aggiunte qui durante la stagione.";
+    eventiContent.appendChild(empty);
+  } else {
+    var list = document.createElement("div");
+    list.className = "event-list";
+    EVENTS.slice().sort(function(a,b){ return a.date<b.date?-1:1; }).forEach(function(e){
+      var card = document.createElement("div");
+      card.className = "event-card";
+      card.innerHTML = '<div class="event-date">'+formatLongDate(e.date)+'</div>'+
+        '<div><div class="event-title">'+e.title+'</div>'+
+        (e.place?'<div class="event-place">'+e.place+'</div>':'')+'</div>';
+      list.appendChild(card);
+    });
+    eventiContent.appendChild(list);
+  }
+
+  // ---------- Filter chips ----------
+  var filterChips = document.getElementById("filterChips");
+  filterChips.addEventListener("click", function(e){
+    var btn = e.target.closest(".chip");
+    if(!btn) return;
+    Array.prototype.forEach.call(filterChips.querySelectorAll(".chip"), function(c){ c.setAttribute("aria-pressed","false"); });
+    btn.setAttribute("aria-pressed","true");
+    document.documentElement.setAttribute("data-filter", btn.getAttribute("data-filter"));
+  });
+
+  // ---------- Modal ----------
+  var backdrop = document.getElementById("modalBackdrop");
+  var modalEyebrow = document.getElementById("modalEyebrow");
+  var modalTitle = document.getElementById("modalTitle");
+  var modalFields = document.getElementById("modalFields");
+
+  function field(label, value, opts){
+    opts = opts || {};
+    var dt = document.createElement("dt");
+    dt.textContent = label;
+    var dd = document.createElement("dd");
+    dd.textContent = value;
+    if(opts.placeholder) dd.className = "placeholder";
+    if(opts.fixed) dd.className = "fixed";
+    var frag = document.createDocumentFragment();
+    frag.appendChild(dt);
+    frag.appendChild(dd);
+    return frag;
+  }
+
+  window.openModal = function(key){
+    var n = lessonIndex[key];
+    modalEyebrow.textContent = "Lezione n. "+n+" di "+lessonDates.length;
+    modalTitle.textContent = formatLongDate(key);
+    modalFields.innerHTML = "";
+    var ov = LESSON_OVERRIDES[key] || {};
+    modalFields.appendChild(field("Preparazione fisica", ov.fisica || "Da assegnare", {placeholder: !ov.fisica}));
+    modalFields.appendChild(field("Tecnica", ov.tecnica || "Da assegnare", {placeholder: !ov.tecnica}));
+    modalFields.appendChild(field("Teoria", ov.teoria || "Da assegnare", {placeholder: !ov.teoria}));
+    modalFields.appendChild(field("Sparring", "Sparring libero — 15–20 min finali", {fixed:true}));
+    backdrop.hidden = false;
+    document.body.style.overflow = "hidden";
+  };
+  function closeModal(){
+    backdrop.hidden = true;
+    document.body.style.overflow = "";
+  }
+  document.getElementById("modalClose").addEventListener("click", closeModal);
+  backdrop.addEventListener("click", function(e){ if(e.target===backdrop) closeModal(); });
+  document.addEventListener("keydown", function(e){ if(e.key==="Escape" && !backdrop.hidden) closeModal(); });
+
+})();
+</script>
