@@ -203,6 +203,9 @@
   .event-date{font-size:12px; color:var(--brass); font-weight:700; white-space:nowrap;}
   .event-title{font-weight:600;}
   .event-place{font-size:12px; color:var(--ink-soft);}
+  .event-desc{font-size:13px; color:var(--ink-soft); margin-top:2px;}
+
+  .loading-msg{padding:50px 20px; color:var(--ink-soft); font-size:14px; text-align:center;}
 
   footer{padding:26px 20px 4px; font-size:11.5px; color:var(--ink-soft);}
 </style>
@@ -241,11 +244,11 @@
 
   <section class="events-section" id="eventiSection">
     <h2>Calendario Eventi</h2>
-    <p class="sub">Stage, gare e altre attività dell'associazione. Verrà aggiornato nel corso della stagione.</p>
+    <p class="sub">Stage, gare e altre attività dell'associazione, gestiti dal direttivo tramite il foglio condiviso.</p>
     <div id="eventiContent"></div>
   </section>
 
-  <footer>SAAM Empoli A.S.D. — Programma generato per la stagione 2026/2027. Le voci di allenamento fisico, tecnico e teorico sono da definire.</footer>
+  <footer>SAAM Empoli A.S.D. — Programma generato per la stagione 2026/2027. Il dettaglio di ogni lezione e il calendario eventi sono aggiornati dal direttivo tramite il foglio condiviso.</footer>
 </div>
 
 <div class="modal-backdrop" id="modalBackdrop" hidden>
@@ -261,6 +264,86 @@
 (function(){
   "use strict";
 
+  // ---------- Sorgente dati: Google Sheet ----------
+  // Per collegare il foglio: Google Sheets > file > "Condividi" > "Chiunque abbia il link" > Visualizzatore,
+  // poi incollare qui l'ID del foglio (nella URL, tra /d/ e /edit) e il gid di ciascuna scheda
+  // (visibile nella URL dopo #gid= quando quella scheda è aperta; la prima scheda di solito ha gid=0).
+  // Schede attese: "Lezioni" (colonne: data, fisica, tecnica, teoria) e "Eventi" (colonne: data, titolo, luogo, descrizione).
+  // Le date vanno scritte come AAAA-MM-GG (es. 2026-09-02), colonna formattata come Testo semplice.
+  var SHEET_CONFIG = {
+    spreadsheetId: "INSERISCI_QUI_ID_FOGLIO",
+    lezioniGid: "0",
+    eventiGid: "INSERISCI_QUI_GID_EVENTI"
+  };
+
+  // nota: usa pad(), definita più sotto ma disponibile qui grazie all'hoisting delle function declaration
+  function normalizeDate(s){
+    s = (s||"").trim();
+    var isoMatch = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(s);
+    if(isoMatch){ return isoMatch[1]+"-"+pad(+isoMatch[2])+"-"+pad(+isoMatch[3]); }
+    var euMatch = /^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/.exec(s);
+    if(euMatch){ return euMatch[3]+"-"+pad(+euMatch[2])+"-"+pad(+euMatch[1]); } // assume GG/MM/AAAA
+    return s;
+  }
+
+  function parseCSV(text){
+    var rows = []; var row = []; var field = ""; var inQuotes = false;
+    for(var i=0;i<text.length;i++){
+      var c = text[i];
+      if(inQuotes){
+        if(c === '"'){
+          if(text[i+1] === '"'){ field += '"'; i++; } else { inQuotes = false; }
+        } else { field += c; }
+      } else {
+        if(c === '"'){ inQuotes = true; }
+        else if(c === ','){ row.push(field); field = ""; }
+        else if(c === '\n'){ row.push(field); rows.push(row); row = []; field = ""; }
+        else if(c === '\r'){ /* ignorato, gestito dal \n successivo */ }
+        else { field += c; }
+      }
+    }
+    if(field.length || row.length){ row.push(field); rows.push(row); }
+    return rows;
+  }
+
+  function csvRowsToObjects(rows){
+    if(rows.length < 1) return [];
+    var headers = rows[0].map(function(h){ return h.trim().toLowerCase(); });
+    var out = [];
+    for(var i=1;i<rows.length;i++){
+      var r = rows[i];
+      if(r.length===1 && r[0].trim()==="") continue;
+      var obj = {};
+      headers.forEach(function(h, idx){ obj[h] = (r[idx]||"").trim(); });
+      out.push(obj);
+    }
+    return out;
+  }
+
+  function fetchSheetTab(gid){
+    var url = "https://docs.google.com/spreadsheets/d/"+SHEET_CONFIG.spreadsheetId+"/export?format=csv&gid="+gid;
+    return fetch(url, {cache:"no-store"}).then(function(res){
+      if(!res.ok) throw new Error("HTTP "+res.status);
+      return res.text();
+    }).then(function(text){ return csvRowsToObjects(parseCSV(text)); });
+  }
+
+  function lessonOverridesFromRows(rows){
+    var out = {};
+    rows.forEach(function(r){
+      var d = normalizeDate(r.data);
+      if(!d) return;
+      out[d] = { fisica: r.fisica||"", tecnica: r.tecnica||"", teoria: r.teoria||"" };
+    });
+    return out;
+  }
+
+  function eventsFromRows(rows){
+    return rows.filter(function(r){ return normalizeDate(r.data); }).map(function(r){
+      return { date: normalizeDate(r.data), title: r.titolo||"(senza titolo)", place: r.luogo||"", desc: r.descrizione||"" };
+    });
+  }
+
   // ---------- Data ----------
   var HOLIDAYS = {
     "2026-12-25": "Natale",
@@ -269,8 +352,8 @@
     "2027-03-29": "Pasquetta",
     "2027-06-02": "Festa della Repubblica"
   };
-  var EVENTS = []; // { date:"YYYY-MM-DD", title:"", place:"", desc:"" } — da popolare in seguito
-  var LESSON_OVERRIDES = {}; // date -> { fisica, tecnica, teoria } — da popolare in seguito
+  var EVENTS = []; // { date:"YYYY-MM-DD", title:"", place:"", desc:"" } — popolato dal foglio Google, se configurato
+  var LESSON_OVERRIDES = {}; // date -> { fisica, tecnica, teoria } — popolato dal foglio Google, se configurato
 
   var ITALIAN_MONTHS = ["Gennaio","Febbraio","Marzo","Aprile","Maggio","Giugno","Luglio","Agosto","Settembre","Ottobre","Novembre","Dicembre"];
   var WEEKDAY_LABELS = ["Lun","Mar","Mer","Gio","Ven","Sab","Dom"];
@@ -315,6 +398,7 @@
     return wd.charAt(0).toUpperCase()+wd.slice(1)+" "+d.getDate()+" "+ITALIAN_MONTHS[d.getMonth()].toLowerCase()+" "+d.getFullYear();
   }
 
+  function buildPage(){
   // ---------- Stats row ----------
   var statsRow = document.getElementById("statsRow");
   function stat(num, label, cls){
@@ -339,6 +423,7 @@
 
   // ---------- Build months ----------
   var monthsRoot = document.getElementById("months");
+  monthsRoot.innerHTML = "";
   var lessonIndex = {}; // date -> ordinal number in season
   lessonDates.forEach(function(k, i){ lessonIndex[k] = i+1; });
 
@@ -447,7 +532,8 @@
       card.className = "event-card";
       card.innerHTML = '<div class="event-date">'+formatLongDate(e.date)+'</div>'+
         '<div><div class="event-title">'+e.title+'</div>'+
-        (e.place?'<div class="event-place">'+e.place+'</div>':'')+'</div>';
+        (e.place?'<div class="event-place">'+e.place+'</div>':'')+
+        (e.desc?'<div class="event-desc">'+e.desc+'</div>':'')+'</div>';
       list.appendChild(card);
     });
     eventiContent.appendChild(list);
@@ -503,6 +589,25 @@
   document.getElementById("modalClose").addEventListener("click", closeModal);
   backdrop.addEventListener("click", function(e){ if(e.target===backdrop) closeModal(); });
   document.addEventListener("keydown", function(e){ if(e.key==="Escape" && !backdrop.hidden) closeModal(); });
+  } // fine buildPage()
+
+  // ---------- Avvio ----------
+  // Se il foglio è configurato (vedi SHEET_CONFIG sopra) carica lezioni ed eventi da lì,
+  // altrimenti mostra direttamente i segnaposto di default.
+  var isSheetConfigured = SHEET_CONFIG.spreadsheetId && SHEET_CONFIG.spreadsheetId.indexOf("INSERISCI") === -1;
+  if(!isSheetConfigured){
+    buildPage();
+  } else {
+    document.getElementById("months").innerHTML = '<p class="loading-msg">Caricamento calendario…</p>';
+    Promise.all([
+      fetchSheetTab(SHEET_CONFIG.lezioniGid).then(lessonOverridesFromRows).catch(function(){ return {}; }),
+      fetchSheetTab(SHEET_CONFIG.eventiGid).then(eventsFromRows).catch(function(){ return []; })
+    ]).then(function(results){
+      LESSON_OVERRIDES = results[0];
+      EVENTS = results[1];
+    }).catch(function(){ /* in caso di errore restano i valori di default */ })
+      .then(buildPage);
+  }
 
 })();
 </script>
