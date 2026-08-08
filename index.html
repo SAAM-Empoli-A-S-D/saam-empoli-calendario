@@ -93,7 +93,7 @@
   .grid{display:grid; grid-template-columns:repeat(7,1fr); gap:6px;}
 
   .cell{
-    position:relative; min-height:clamp(96px,18vw,138px); border-radius:4px;
+    position:relative; min-height:clamp(96px,18vw,138px); min-width:0; border-radius:4px;
     border:1px solid transparent; background:transparent; padding:6px 6px 5px; text-align:left;
     font-family:inherit; color:var(--ink); cursor:default; display:flex; flex-direction:column;
   }
@@ -102,14 +102,14 @@
   .cell .preview{
     font-size:8.5px; line-height:1.25; color:var(--ink-soft); margin-top:3px;
     display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
-    overflow:hidden; word-break:break-word; flex:1 1 auto;
+    overflow:hidden; word-break:break-word; flex:1 1 auto; min-width:0;
   }
   .cell .preview-stack{
     margin-top:3px; display:flex; flex-direction:column; gap:1.5px;
-    flex:1 1 auto; min-height:0; overflow:hidden;
+    flex:1 1 auto; min-height:0; min-width:0; overflow:hidden;
   }
   .cell .preview-line{
-    font-size:7.3px; line-height:1.3; color:var(--ink-soft);
+    font-size:7.3px; line-height:1.3; color:var(--ink-soft); min-width:0;
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   }
   .cell .preview-line b{color:var(--brass); font-weight:700; margin-right:2px;}
