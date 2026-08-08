@@ -257,7 +257,9 @@
   // Per collegare il foglio: Google Sheets > file > "Condividi" > "Chiunque abbia il link" > Visualizzatore,
   // poi incollare qui l'ID del foglio (nella URL, tra /d/ e /edit) e il gid di ciascuna scheda
   // (visibile nella URL dopo #gid= quando quella scheda è aperta; la prima scheda di solito ha gid=0).
-  // Schede attese: "Lezioni" (colonne: data, fisica, tecnica, teoria) e "Eventi" (colonne: data, titolo, luogo, descrizione).
+  // Schede attese: "Lezioni" (colonne: data, fisica, tecnica, teoria) e "Eventi" (colonne: data, titolo, luogo, descrizione, fonte, data_fine).
+  // "data_fine" è opzionale: per eventi su più giorni, indica l'ultimo giorno (incluso) e l'evento
+  // viene evidenziato su tutte le giornate dell'intervallo. Se assente, l'evento dura un solo giorno.
   // Le date vanno scritte come AAAA-MM-GG (es. 2026-09-02), colonna formattata come Testo semplice.
   var SHEET_CONFIG = {
     spreadsheetId: "1W3ZfjBBIg_6UIyn2Cr89FDDwJ-9vadcH",
@@ -329,7 +331,10 @@
 
   function eventsFromRows(rows){
     return rows.filter(function(r){ return normalizeDate(r.data); }).map(function(r){
-      return { date: normalizeDate(r.data), title: r.titolo||"(senza titolo)", place: r.luogo||"", desc: r.descrizione||"", source: r.fonte||"" };
+      var start = normalizeDate(r.data);
+      var end = normalizeDate(r.data_fine) || start;
+      if(end < start) end = start; // data_fine incoerente: tratta come evento di un solo giorno
+      return { date: start, endDate: end, title: r.titolo||"(senza titolo)", place: r.luogo||"", desc: r.descrizione||"", source: r.fonte||"" };
     });
   }
 
@@ -393,6 +398,21 @@
     var d = new Date(parts[0], parts[1]-1, parts[2]);
     var wd = WEEKDAY_FULL[d.getDay()];
     return wd.charAt(0).toUpperCase()+wd.slice(1)+" "+d.getDate()+" "+ITALIAN_MONTHS[d.getMonth()].toLowerCase()+" "+d.getFullYear();
+  }
+
+  function formatEventDateRange(startIso, endIso){
+    if(!endIso || endIso === startIso) return formatLongDate(startIso);
+    var s = startIso.split("-").map(Number);
+    var e = endIso.split("-").map(Number);
+    var sDate = new Date(s[0], s[1]-1, s[2]);
+    var eDate = new Date(e[0], e[1]-1, e[2]);
+    if(s[0]===e[0] && s[1]===e[1]){
+      return sDate.getDate()+"–"+eDate.getDate()+" "+ITALIAN_MONTHS[e[1]-1].toLowerCase()+" "+e[0];
+    }
+    if(s[0]===e[0]){
+      return sDate.getDate()+" "+ITALIAN_MONTHS[s[1]-1].toLowerCase()+" – "+eDate.getDate()+" "+ITALIAN_MONTHS[e[1]-1].toLowerCase()+" "+e[0];
+    }
+    return formatLongDate(startIso)+" – "+formatLongDate(endIso);
   }
 
   function buildPage(){
@@ -473,7 +493,7 @@
       var isTraining = isTrainingDow(dow) && !HOLIDAYS[key];
       var isPast = key < todayIso;
       var isToday = key === todayIso;
-      var hasEvent = EVENTS.some(function(e){ return e.date===key; });
+      var hasEvent = EVENTS.some(function(e){ return key >= e.date && key <= e.endDate; });
 
       var interactive = isTraining || hasEvent;
       var cell = document.createElement(interactive ? "button" : "div");
@@ -534,7 +554,7 @@
     EVENTS.slice().sort(function(a,b){ return a.date<b.date?-1:1; }).forEach(function(e){
       var card = document.createElement("div");
       card.className = "event-card";
-      card.innerHTML = '<div class="event-date">'+formatLongDate(e.date)+'</div>'+
+      card.innerHTML = '<div class="event-date">'+formatEventDateRange(e.date, e.endDate)+'</div>'+
         '<div><div class="event-title">'+e.title+'</div>'+
         (e.place?'<div class="event-place">'+e.place+'</div>':'')+
         (e.desc?'<div class="event-desc">'+e.desc+'</div>':'')+
@@ -578,8 +598,10 @@
   function eventBlock(e){
     var wrap = document.createElement("div");
     wrap.className = "modal-event";
+    var isMultiDay = e.endDate && e.endDate !== e.date;
     wrap.innerHTML = '<p class="modal-event-eyebrow">Evento</p>'+
       '<p class="modal-event-title">'+e.title+'</p>'+
+      (isMultiDay?'<p class="modal-event-place">'+formatEventDateRange(e.date, e.endDate)+'</p>':'')+
       (e.place?'<p class="modal-event-place">'+e.place+'</p>':'')+
       (e.desc?'<p class="modal-event-desc">'+e.desc+'</p>':'')+
       sourceHtml(e.source);
@@ -588,7 +610,7 @@
 
   window.openModal = function(key){
     var isLessonDay = lessonIndex.hasOwnProperty(key);
-    var dayEvents = EVENTS.filter(function(e){ return e.date === key; });
+    var dayEvents = EVENTS.filter(function(e){ return key >= e.date && key <= e.endDate; });
 
     modalFields.innerHTML = "";
     modalEvents.innerHTML = "";
