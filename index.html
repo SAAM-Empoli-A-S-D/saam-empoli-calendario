@@ -93,7 +93,7 @@
   .grid{display:grid; grid-template-columns:repeat(7,1fr); gap:6px;}
 
   .cell{
-    position:relative; min-height:clamp(60px,12vw,90px); border-radius:4px;
+    position:relative; min-height:clamp(96px,18vw,138px); border-radius:4px;
     border:1px solid transparent; background:transparent; padding:6px 6px 5px; text-align:left;
     font-family:inherit; color:var(--ink); cursor:default; display:flex; flex-direction:column;
   }
@@ -104,6 +104,17 @@
     display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
     overflow:hidden; word-break:break-word; flex:1 1 auto;
   }
+  .cell .preview-stack{
+    margin-top:3px; display:flex; flex-direction:column; gap:1.5px;
+    flex:1 1 auto; min-height:0; overflow:hidden;
+  }
+  .cell .preview-line{
+    font-size:7.3px; line-height:1.3; color:var(--ink-soft);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .cell .preview-line b{color:var(--brass); font-weight:700; margin-right:2px;}
+  .cell.training.today .preview-line{color:var(--ink);}
+  .cell.training.past .preview-line b{opacity:.7;}
   .cell.training .preview{padding-right:12px;}
   .cell.training.today .preview{color:var(--ink);}
 
@@ -501,6 +512,17 @@
   var lessonIndex = {}; // date -> ordinal number in season
   lessonDates.forEach(function(k, i){ lessonIndex[k] = i+1; });
 
+  function microLine(label, value){
+    if(!value) return null;
+    var s = document.createElement("span");
+    s.className = "preview-line";
+    var b = document.createElement("b");
+    b.textContent = label;
+    s.appendChild(b);
+    s.appendChild(document.createTextNode(value));
+    return s;
+  }
+
   function fieldLine(label, value, isPlaceholder){
     var div = document.createElement("div");
     div.className = "lesson-row-field" + (isPlaceholder ? " placeholder" : "");
@@ -660,11 +682,19 @@
         cell.appendChild(tag);
       } else if(isTraining){
         var ov = LESSON_OVERRIDES[key];
-        if(ov && ov.tecnica){
-          var prev = document.createElement("span");
-          prev.className = "preview";
-          prev.textContent = ov.tecnica;
-          cell.appendChild(prev);
+        if(ov){
+          var stack = document.createElement("span");
+          stack.className = "preview-stack";
+          var microLines = [
+            microLine("F", ov.fisica),
+            ov.tecnicaAvanzato ? microLine("T-B", ov.tecnica) : microLine("T", ov.tecnica),
+            ov.tecnicaAvanzato ? microLine("T-A", ov.tecnicaAvanzato) : null,
+            microLine("TB", ov.teoriaBase),
+            microLine("TA", ov.teoriaAvanzato),
+            microLine("S", ov.sparring)
+          ];
+          microLines.forEach(function(el){ if(el) stack.appendChild(el); });
+          if(stack.children.length) cell.appendChild(stack);
         }
       } else if(hasEvent){
         var evPrev = document.createElement("span");
