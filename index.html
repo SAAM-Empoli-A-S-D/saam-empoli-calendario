@@ -257,7 +257,15 @@
   // Per collegare il foglio: Google Sheets > file > "Condividi" > "Chiunque abbia il link" > Visualizzatore,
   // poi incollare qui l'ID del foglio (nella URL, tra /d/ e /edit) e il gid di ciascuna scheda
   // (visibile nella URL dopo #gid= quando quella scheda è aperta; la prima scheda di solito ha gid=0).
-  // Schede attese: "Lezioni" (colonne: data, fisica, tecnica, teoria) e "Eventi" (colonne: data, titolo, luogo, descrizione, fonte, data_fine).
+  // Schede attese:
+  // "Lezioni" (colonne: data, fisica, tecnica, tecnica_avanzato, teoria_base, teoria_avanzato).
+  //   - fisica: condivisa tra corso base e avanzato.
+  //   - tecnica: valore condiviso di default. "tecnica_avanzato" è opzionale: va compilato SOLO nei
+  //     giorni in cui il corso avanzato fa un lavoro tecnico diverso dal base — in quel caso il sito
+  //     mostra i due valori separati, altrimenti mostra un unico campo "Tecnica" condiviso.
+  //   - teoria_base / teoria_avanzato: sempre separate (curricula diversi), mostrate sempre come due campi.
+  //   - lo sparring è condiviso ed è un testo fisso, non viene letto dal foglio.
+  // "Eventi" (colonne: data, titolo, luogo, descrizione, fonte, data_fine).
   // "data_fine" è opzionale: per eventi su più giorni, indica l'ultimo giorno (incluso) e l'evento
   // viene evidenziato su tutte le giornate dell'intervallo. Se assente, l'evento dura un solo giorno.
   // Le date vanno scritte come AAAA-MM-GG (es. 2026-09-02), colonna formattata come Testo semplice.
@@ -324,7 +332,13 @@
     rows.forEach(function(r){
       var d = normalizeDate(r.data);
       if(!d) return;
-      out[d] = { fisica: r.fisica||"", tecnica: r.tecnica||"", teoria: r.teoria||"" };
+      out[d] = {
+        fisica: r.fisica||"",
+        tecnica: r.tecnica||"",
+        tecnicaAvanzato: r.tecnica_avanzato||"",
+        teoriaBase: r.teoria_base||"",
+        teoriaAvanzato: r.teoria_avanzato||""
+      };
     });
     return out;
   }
@@ -621,8 +635,14 @@
       modalTitle.textContent = formatLongDate(key);
       var ov = LESSON_OVERRIDES[key] || {};
       modalFields.appendChild(field("Preparazione fisica", ov.fisica || "Da assegnare", {placeholder: !ov.fisica}));
-      modalFields.appendChild(field("Tecnica", ov.tecnica || "Da assegnare", {placeholder: !ov.tecnica}));
-      modalFields.appendChild(field("Teoria", ov.teoria || "Da assegnare", {placeholder: !ov.teoria}));
+      if(ov.tecnicaAvanzato){
+        modalFields.appendChild(field("Tecnica — Corso Base", ov.tecnica || "Da assegnare", {placeholder: !ov.tecnica}));
+        modalFields.appendChild(field("Tecnica — Corso Avanzato", ov.tecnicaAvanzato));
+      } else {
+        modalFields.appendChild(field("Tecnica", ov.tecnica || "Da assegnare", {placeholder: !ov.tecnica}));
+      }
+      modalFields.appendChild(field("Teoria — Corso Base", ov.teoriaBase || "Da assegnare", {placeholder: !ov.teoriaBase}));
+      modalFields.appendChild(field("Teoria — Corso Avanzato", ov.teoriaAvanzato || "Da assegnare", {placeholder: !ov.teoriaAvanzato}));
       modalFields.appendChild(field("Sparring", "Sparring libero — 15–20 min finali", {fixed:true}));
     } else {
       modalEyebrow.textContent = dayEvents.length > 1 ? "Eventi" : "Evento";
