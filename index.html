@@ -133,9 +133,40 @@
     clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);
   }
 
+  /* ---------- Vista Elenco (alternativa al grid, tutto visibile senza click) ---------- */
+  .lesson-list{display:none; flex-direction:column; gap:8px;}
+  .lesson-row{
+    background:var(--surface); border:1px solid var(--line); border-radius:6px;
+    padding:10px 12px; box-shadow:var(--shadow);
+  }
+  .lesson-row.past{opacity:.55;}
+  .lesson-row.today{border-color:var(--brass); border-width:2px;}
+  .lesson-row.closed{
+    background:repeating-linear-gradient(45deg,var(--surface-muted),var(--surface-muted) 5px,color-mix(in srgb, var(--rust-soft) 22%, var(--surface-muted)) 5px,color-mix(in srgb, var(--rust-soft) 22%, var(--surface-muted)) 9px);
+  }
+  .lesson-row-head{display:flex; align-items:baseline; justify-content:space-between; gap:8px; flex-wrap:wrap;}
+  .lesson-row-date{font-weight:700; font-size:13.5px; font-variant-numeric:tabular-nums; text-transform:capitalize;}
+  .lesson-row-badge{font-size:10.5px; letter-spacing:.03em; color:var(--ink-soft);}
+  .lesson-row-badge.today-badge{color:var(--brass); font-weight:700; text-transform:uppercase;}
+  .lesson-row-badge.closed-badge{color:var(--rust); font-weight:700; text-transform:uppercase;}
+  .lesson-row-body{margin-top:8px; display:flex; flex-direction:column; gap:4px;}
+  .lesson-row-field{font-size:12.5px; line-height:1.4; color:var(--ink);}
+  .lesson-row-field b{
+    color:var(--ink-soft); font-weight:700; text-transform:uppercase; font-size:10px;
+    letter-spacing:.04em; margin-right:5px;
+  }
+  .lesson-row-field.placeholder{color:var(--ink-soft); font-style:italic;}
+  .lesson-row-events{margin-top:8px; padding-top:8px; border-top:1px dashed var(--line);}
+
+  :root[data-view="elenco"] .grid,
+  :root[data-view="elenco"] .weekday-row{display:none;}
+  :root[data-view="elenco"] .lesson-list{display:flex;}
+
   :root[data-filter="allenamenti"] .events-section{display:none;}
+  :root[data-filter="allenamenti"] .lesson-row.event-only{display:none;}
   :root[data-filter="eventi"] .cell.training{opacity:.3;}
   :root[data-filter="eventi"] .cell.training.today{opacity:1;}
+  :root[data-filter="eventi"] .lesson-row.training-only{display:none;}
 
   /* ---------- Modal ---------- */
   .modal-backdrop{
@@ -222,6 +253,10 @@
         <button class="chip" data-filter="tutto" aria-pressed="true">Tutto</button>
         <button class="chip" data-filter="allenamenti" aria-pressed="false">Allenamenti</button>
         <button class="chip" data-filter="eventi" aria-pressed="false">Eventi</button>
+      </div>
+      <div class="chip-group" id="viewChips">
+        <button class="chip" data-view="calendario" aria-pressed="true">Calendario</button>
+        <button class="chip" data-view="elenco" aria-pressed="false">Elenco</button>
       </div>
       <nav class="month-nav" id="monthNav" aria-label="Vai al mese"></nav>
     </div>
@@ -458,6 +493,77 @@
   var lessonIndex = {}; // date -> ordinal number in season
   lessonDates.forEach(function(k, i){ lessonIndex[k] = i+1; });
 
+  function fieldLine(label, value, isPlaceholder){
+    var div = document.createElement("div");
+    div.className = "lesson-row-field" + (isPlaceholder ? " placeholder" : "");
+    var b = document.createElement("b");
+    b.textContent = label;
+    div.appendChild(b);
+    div.appendChild(document.createTextNode(value));
+    return div;
+  }
+
+  function buildListRow(key, date, isTraining, isHoliday, isPast, isToday, dayEvents){
+    var row = document.createElement("div");
+    var classes = ["lesson-row"];
+    if(isTraining){
+      classes.push("training");
+      if(!dayEvents.length) classes.push("training-only");
+      if(isPast) classes.push("past");
+      if(isToday) classes.push("today");
+    } else if(isHoliday){
+      classes.push("closed");
+    } else if(dayEvents.length){
+      classes.push("event-only");
+    }
+    if(dayEvents.length) classes.push("has-event");
+    row.className = classes.join(" ");
+
+    var head = document.createElement("div");
+    head.className = "lesson-row-head";
+    var dateSpan = document.createElement("span");
+    dateSpan.className = "lesson-row-date";
+    dateSpan.textContent = WEEKDAY_FULL[date.getDay()].slice(0,3)+" "+date.getDate();
+    head.appendChild(dateSpan);
+
+    var badge = document.createElement("span");
+    if(isHoliday){
+      badge.className = "lesson-row-badge closed-badge";
+      badge.textContent = "Chiuso" + (HOLIDAYS[key] ? " — "+HOLIDAYS[key] : "");
+    } else if(isTraining){
+      badge.className = "lesson-row-badge" + (isToday ? " today-badge" : "");
+      badge.textContent = isToday ? "Oggi" : ("Lezione n. "+lessonIndex[key]);
+    }
+    if(badge.textContent) head.appendChild(badge);
+    row.appendChild(head);
+
+    if(isTraining){
+      var body = document.createElement("div");
+      body.className = "lesson-row-body";
+      var ov = LESSON_OVERRIDES[key] || {};
+      body.appendChild(fieldLine("Fisica", ov.fisica || "Da assegnare", !ov.fisica));
+      if(ov.tecnicaAvanzato){
+        body.appendChild(fieldLine("Tecnica — Base", ov.tecnica || "Da assegnare", !ov.tecnica));
+        body.appendChild(fieldLine("Tecnica — Avanzato", ov.tecnicaAvanzato, false));
+      } else {
+        body.appendChild(fieldLine("Tecnica", ov.tecnica || "Da assegnare", !ov.tecnica));
+      }
+      body.appendChild(fieldLine("Teoria — Base", ov.teoriaBase || "Da assegnare", !ov.teoriaBase));
+      body.appendChild(fieldLine("Teoria — Avanzato", ov.teoriaAvanzato || "Da assegnare", !ov.teoriaAvanzato));
+      body.appendChild(fieldLine("Sparring", ov.sparring || "Da assegnare", !ov.sparring));
+      row.appendChild(body);
+    }
+
+    if(dayEvents.length){
+      var evWrap = document.createElement("div");
+      evWrap.className = "modal-events lesson-row-events";
+      dayEvents.forEach(function(e){ evWrap.appendChild(eventBlock(e)); });
+      row.appendChild(evWrap);
+    }
+
+    return row;
+  }
+
   seasonMonths.forEach(function(sm){
     var section = document.createElement("section");
     section.className = "month";
@@ -486,6 +592,8 @@
 
     var grid = document.createElement("div");
     grid.className = "grid";
+    var list = document.createElement("div");
+    list.className = "lesson-list";
 
     var first = new Date(sm.year, sm.month, 1);
     var startOffset = (first.getDay()+6)%7; // Monday=0
@@ -507,7 +615,8 @@
       var isTraining = isTrainingDow(dow) && !HOLIDAYS[key];
       var isPast = key < todayIso;
       var isToday = key === todayIso;
-      var hasEvent = EVENTS.some(function(e){ return key >= e.date && key <= e.endDate; });
+      var dayEvents = EVENTS.filter(function(e){ return key >= e.date && key <= e.endDate; });
+      var hasEvent = dayEvents.length > 0;
 
       var interactive = isTraining || hasEvent;
       var cell = document.createElement(interactive ? "button" : "div");
@@ -549,9 +658,14 @@
       }
 
       grid.appendChild(cell);
+
+      if(isTraining || isHoliday || hasEvent){
+        list.appendChild(buildListRow(key, date, isTraining, isHoliday, isPast, isToday, dayEvents));
+      }
     }
 
     section.appendChild(grid);
+    section.appendChild(list);
     monthsRoot.appendChild(section);
   });
 
@@ -586,6 +700,27 @@
     Array.prototype.forEach.call(filterChips.querySelectorAll(".chip"), function(c){ c.setAttribute("aria-pressed","false"); });
     btn.setAttribute("aria-pressed","true");
     document.documentElement.setAttribute("data-filter", btn.getAttribute("data-filter"));
+  });
+
+  // ---------- View chips (Calendario / Elenco) ----------
+  var VIEW_KEY = "saam-view";
+  var viewChips = document.getElementById("viewChips");
+  var savedView = null;
+  try { savedView = localStorage.getItem(VIEW_KEY); } catch(e){}
+  if(savedView === "elenco"){
+    document.documentElement.setAttribute("data-view", "elenco");
+    Array.prototype.forEach.call(viewChips.querySelectorAll(".chip"), function(c){
+      c.setAttribute("aria-pressed", c.getAttribute("data-view") === "elenco" ? "true" : "false");
+    });
+  }
+  viewChips.addEventListener("click", function(e){
+    var btn = e.target.closest(".chip");
+    if(!btn) return;
+    Array.prototype.forEach.call(viewChips.querySelectorAll(".chip"), function(c){ c.setAttribute("aria-pressed","false"); });
+    btn.setAttribute("aria-pressed","true");
+    var view = btn.getAttribute("data-view");
+    document.documentElement.setAttribute("data-view", view);
+    try { localStorage.setItem(VIEW_KEY, view); } catch(e){}
   });
 
   // ---------- Modal ----------
