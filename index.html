@@ -163,7 +163,6 @@
   }
   .modal-fields dd{margin:0; font-size:14.5px; color:var(--ink);}
   .modal-fields dd.placeholder{color:var(--ink-soft); font-style:italic;}
-  .modal-fields .fixed{color:var(--steel); font-weight:600;}
 
   .modal-events{margin:0; display:flex; flex-direction:column; gap:14px;}
   .modal-events:not(:empty){margin-top:16px; padding-top:16px; border-top:1px solid var(--line);}
@@ -258,13 +257,13 @@
   // poi incollare qui l'ID del foglio (nella URL, tra /d/ e /edit) e il gid di ciascuna scheda
   // (visibile nella URL dopo #gid= quando quella scheda è aperta; la prima scheda di solito ha gid=0).
   // Schede attese:
-  // "Lezioni" (colonne: data, fisica, tecnica, tecnica_avanzato, teoria_base, teoria_avanzato).
+  // "Lezioni" (colonne: data, fisica, tecnica, tecnica_avanzato, teoria_base, teoria_avanzato, sparring).
   //   - fisica: condivisa tra corso base e avanzato.
   //   - tecnica: valore condiviso di default. "tecnica_avanzato" è opzionale: va compilato SOLO nei
   //     giorni in cui il corso avanzato fa un lavoro tecnico diverso dal base — in quel caso il sito
   //     mostra i due valori separati, altrimenti mostra un unico campo "Tecnica" condiviso.
   //   - teoria_base / teoria_avanzato: sempre separate (curricula diversi), mostrate sempre come due campi.
-  //   - lo sparring è condiviso ed è un testo fisso, non viene letto dal foglio.
+  //   - sparring: condiviso, un solo campo (come fisica).
   // "Eventi" (colonne: data, titolo, luogo, descrizione, fonte, data_fine).
   // "data_fine" è opzionale: per eventi su più giorni, indica l'ultimo giorno (incluso) e l'evento
   // viene evidenziato su tutte le giornate dell'intervallo. Se assente, l'evento dura un solo giorno.
@@ -337,7 +336,8 @@
         tecnica: r.tecnica||"",
         tecnicaAvanzato: r.tecnica_avanzato||"",
         teoriaBase: r.teoria_base||"",
-        teoriaAvanzato: r.teoria_avanzato||""
+        teoriaAvanzato: r.teoria_avanzato||"",
+        sparring: r.sparring||""
       };
     });
     return out;
@@ -602,7 +602,6 @@
     var dd = document.createElement("dd");
     dd.textContent = value;
     if(opts.placeholder) dd.className = "placeholder";
-    if(opts.fixed) dd.className = "fixed";
     var frag = document.createDocumentFragment();
     frag.appendChild(dt);
     frag.appendChild(dd);
@@ -643,7 +642,7 @@
       }
       modalFields.appendChild(field("Teoria — Corso Base", ov.teoriaBase || "Da assegnare", {placeholder: !ov.teoriaBase}));
       modalFields.appendChild(field("Teoria — Corso Avanzato", ov.teoriaAvanzato || "Da assegnare", {placeholder: !ov.teoriaAvanzato}));
-      modalFields.appendChild(field("Sparring", "Sparring libero — 15–20 min finali", {fixed:true}));
+      modalFields.appendChild(field("Sparring", ov.sparring || "Da assegnare", {placeholder: !ov.sparring}));
     } else {
       modalEyebrow.textContent = dayEvents.length > 1 ? "Eventi" : "Evento";
       modalTitle.textContent = formatLongDate(key);
