@@ -54,6 +54,16 @@
     box-shadow:var(--shadow);
   }
   .brand-row{display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap;}
+  .brand-text{flex:1 1 240px; min-width:0;}
+  .brand-logo{
+    flex:none; align-self:center; margin-left:auto;
+    width:clamp(56px,9vw,110px); aspect-ratio:5000/5282;
+    background-color:var(--brass);
+    -webkit-mask-image:url('logo.png'); mask-image:url('logo.png');
+    -webkit-mask-size:contain; mask-size:contain;
+    -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
+    -webkit-mask-position:center; mask-position:center;
+  }
   .brand-eyebrow{
     font-size:13px; letter-spacing:.14em; text-transform:uppercase; color:var(--brass);
     font-weight:700; margin:0 0 3px;
@@ -321,11 +331,12 @@
 <div class="page">
   <header class="topbar">
     <div class="brand-row">
-      <div>
+      <div class="brand-text">
         <p class="brand-eyebrow">SAAM Empoli · A.S.D. — Scherma Storica</p>
         <h1 class="brand-title">Programma Stagione 2026 / 2027</h1>
         <p class="brand-sub">Lezioni lunedì · mercoledì · venerdì, 20:30–22:30</p>
       </div>
+      <div class="brand-logo" role="img" aria-label="Logo SAAM Empoli A.S.D."></div>
     </div>
 
     <div class="stats-row" id="statsRow"></div>
