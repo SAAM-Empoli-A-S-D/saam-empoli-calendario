@@ -29,6 +29,8 @@
 
     /* Spaziatura laterale reattiva: stretta su mobile, non eccessiva su schermi larghi */
     --pad-x: clamp(16px, 4vw, 40px);
+    /* Logo grande in alto a destra nel topbar */
+    --logo-w: clamp(120px, 22vw, 280px);
   }
 
   *{box-sizing:border-box;}
@@ -53,11 +55,12 @@
     border-bottom:1px solid var(--line); padding:22px var(--pad-x) 16px;
     box-shadow:var(--shadow);
   }
-  .brand-row{display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap;}
-  .brand-text{flex:1 1 240px; min-width:0;}
+  /* Riserva orizzontale per il logo grande, così testo/statistiche/filtri non ci finiscono sotto */
+  .topbar-head{padding-right:calc(var(--logo-w) + 20px);}
+  .brand-row{display:flex; align-items:baseline; gap:12px; flex-wrap:wrap;}
   .brand-logo{
-    flex:none; align-self:center; margin-left:auto;
-    width:clamp(56px,9vw,110px); aspect-ratio:5000/5282;
+    position:absolute; top:22px; right:var(--pad-x);
+    width:var(--logo-w); aspect-ratio:5000/5282;
     background-color:var(--brass);
     -webkit-mask-image:url('logo.png'); mask-image:url('logo.png');
     -webkit-mask-size:contain; mask-size:contain;
@@ -330,43 +333,46 @@
 
 <div class="page">
   <header class="topbar">
-    <div class="brand-row">
-      <div class="brand-text">
-        <p class="brand-eyebrow">SAAM Empoli · A.S.D. — Scherma Storica</p>
-        <h1 class="brand-title">Programma Stagione 2026 / 2027</h1>
-        <p class="brand-sub">Lezioni lunedì · mercoledì · venerdì, 20:30–22:30</p>
+    <div class="topbar-head">
+      <div class="brand-row">
+        <div class="brand-text">
+          <p class="brand-eyebrow">SAAM Empoli · A.S.D. — Scherma Storica</p>
+          <h1 class="brand-title">Programma Stagione 2026 / 2027</h1>
+          <p class="brand-sub">Lezioni lunedì · mercoledì · venerdì, 20:30–22:30</p>
+        </div>
       </div>
-      <div class="brand-logo" role="img" aria-label="Logo SAAM Empoli A.S.D."></div>
-    </div>
 
-    <div class="stats-row" id="statsRow"></div>
+      <div class="stats-row" id="statsRow"></div>
 
-    <div class="legend-row">
-      <span class="legend-item"><span class="swatch sw-lesson"></span>Lezione</span>
-      <span class="legend-item"><span class="swatch sw-today"></span>Oggi</span>
-      <span class="legend-item"><span class="swatch sw-past"></span>Svolta</span>
-      <span class="legend-item"><span class="swatch sw-closed"></span>Festivo — chiuso</span>
-      <span class="legend-item"><span class="swatch sw-event"></span>Evento</span>
-    </div>
-
-    <div class="legend-row legend-activities">
-      <span class="legend-item"><span class="cat-dot cat-atletica"></span>Prep. Atletica</span>
-      <span class="legend-item"><span class="cat-dot cat-tecnica"></span>Tecnica</span>
-      <span class="legend-item"><span class="cat-dot cat-teoria"></span>Teoria</span>
-      <span class="legend-item"><span class="cat-dot cat-sparring"></span>Sparring</span>
-    </div>
-
-    <div class="control-row">
-      <div class="chip-group" id="filterChips">
-        <button class="chip" data-filter="tutto" aria-pressed="true">Tutto</button>
-        <button class="chip" data-filter="allenamenti" aria-pressed="false">Allenamenti</button>
-        <button class="chip" data-filter="eventi" aria-pressed="false">Eventi</button>
+      <div class="legend-row">
+        <span class="legend-item"><span class="swatch sw-lesson"></span>Lezione</span>
+        <span class="legend-item"><span class="swatch sw-today"></span>Oggi</span>
+        <span class="legend-item"><span class="swatch sw-past"></span>Svolta</span>
+        <span class="legend-item"><span class="swatch sw-closed"></span>Festivo — chiuso</span>
+        <span class="legend-item"><span class="swatch sw-event"></span>Evento</span>
       </div>
-      <div class="chip-group" id="viewChips">
-        <button class="chip" data-view="calendario" aria-pressed="true">Calendario</button>
-        <button class="chip" data-view="elenco" aria-pressed="false">Elenco</button>
+
+      <div class="legend-row legend-activities">
+        <span class="legend-item"><span class="cat-dot cat-atletica"></span>Prep. Atletica</span>
+        <span class="legend-item"><span class="cat-dot cat-tecnica"></span>Tecnica</span>
+        <span class="legend-item"><span class="cat-dot cat-teoria"></span>Teoria</span>
+        <span class="legend-item"><span class="cat-dot cat-sparring"></span>Sparring</span>
+      </div>
+
+      <div class="control-row">
+        <div class="chip-group" id="filterChips">
+          <button class="chip" data-filter="tutto" aria-pressed="true">Tutto</button>
+          <button class="chip" data-filter="allenamenti" aria-pressed="false">Allenamenti</button>
+          <button class="chip" data-filter="eventi" aria-pressed="false">Eventi</button>
+        </div>
+        <div class="chip-group" id="viewChips">
+          <button class="chip" data-view="calendario" aria-pressed="true">Calendario</button>
+          <button class="chip" data-view="elenco" aria-pressed="false">Elenco</button>
+        </div>
       </div>
     </div>
+
+    <div class="brand-logo" role="img" aria-label="Logo SAAM Empoli A.S.D."></div>
 
     <nav class="month-nav" id="monthNav" aria-label="Vai al mese"></nav>
   </header>
