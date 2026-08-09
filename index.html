@@ -16,8 +16,16 @@
     --brass-soft:#9C7534;
     --rust:#C9846F;
     --rust-soft:#8C4A3B;
+    --sage:#8FAE7C;
+    --sage-soft:#5C7550;
     --shadow: 0 1px 2px rgba(0,0,0,.35), 0 6px 18px rgba(0,0,0,.3);
     color-scheme: dark;
+
+    /* Tipi di attività: colore per categoria, usato come chiave visiva al posto delle iniziali */
+    --cat-atletica:var(--rust);
+    --cat-tecnica:var(--steel);
+    --cat-teoria:var(--brass);
+    --cat-sparring:var(--sage);
   }
 
   *{box-sizing:border-box;}
@@ -67,6 +75,13 @@
   .sw-closed{background:repeating-linear-gradient(45deg,var(--rust-soft),var(--rust-soft) 2px,transparent 2px,transparent 5px); border:1px solid var(--rust-soft);}
   .sw-event{background:var(--brass); clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);}
 
+  .legend-row.legend-activities{margin-top:8px;}
+  .cat-dot{width:8px; height:8px; border-radius:50%; flex:none; display:inline-block;}
+  .cat-dot.cat-atletica{background:var(--cat-atletica);}
+  .cat-dot.cat-tecnica{background:var(--cat-tecnica);}
+  .cat-dot.cat-teoria{background:var(--cat-teoria);}
+  .cat-dot.cat-sparring{background:var(--cat-sparring);}
+
   .control-row{display:flex; gap:16px; margin-top:16px; flex-wrap:wrap; align-items:center;}
   .chip-group{display:flex; gap:6px;}
   .chip{
@@ -110,31 +125,56 @@
   }
   .cell .preview-line{
     font-size:7.3px; line-height:1.3; color:var(--ink-soft); min-width:0;
-    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    display:flex; align-items:center; gap:3px;
   }
-  .cell .preview-line b{color:var(--brass); font-weight:700; margin-right:2px;}
+  .cell .preview-line .cat-dot{width:5px; height:5px;}
+  .cell .preview-line-text{
+    min-width:0; flex:1 1 auto; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
   .cell.training.today .preview-line{color:var(--ink);}
-  .cell.training.past .preview-line b{opacity:.7;}
-  .cell.training .preview{padding-right:12px;}
-  .cell.training.today .preview{color:var(--ink);}
+  .cell.training.past .preview-line .cat-dot{opacity:.7;}
 
   .cell.plain{color:var(--ink-soft);}
   .cell.plain .num{font-weight:500;}
-  .cell.plain.clickable, .cell.closed.clickable{cursor:pointer;}
-  .cell.plain.clickable{border-color:var(--line); background:var(--surface);}
-  .cell.plain.clickable:hover, .cell.closed.clickable:hover{border-color:var(--brass);}
+  .cell.closed.clickable{cursor:pointer;}
+  .cell.closed.clickable:hover{border-color:var(--brass);}
 
+  /* ---- Lezione: colore sull'intera card, sobrio e leggibile ---- */
   .cell.training{
-    background:var(--surface); border-color:var(--line); box-shadow:var(--shadow); cursor:pointer;
-  }
-  .cell.training::after{
-    content:""; position:absolute; left:6px; right:6px; bottom:5px; height:3px; border-radius:2px;
-    background:var(--steel);
+    background:color-mix(in srgb, var(--steel) 13%, var(--surface));
+    border-color:color-mix(in srgb, var(--steel) 42%, var(--line));
+    box-shadow:var(--shadow); cursor:pointer;
   }
   .cell.training:hover{border-color:var(--steel);}
-  .cell.training.past{opacity:.5;}
+
+  /* Lezione già svolta: tonalità più scura + texture, al posto della semplice opacità */
+  .cell.training.past{
+    background:repeating-linear-gradient(45deg,
+      color-mix(in srgb, var(--steel-soft) 16%, var(--surface-muted)),
+      color-mix(in srgb, var(--steel-soft) 16%, var(--surface-muted)) 5px,
+      color-mix(in srgb, var(--steel-soft) 27%, var(--surface-muted)) 5px,
+      color-mix(in srgb, var(--steel-soft) 27%, var(--surface-muted)) 9px);
+    border-color:var(--line);
+  }
+  .cell.training.past .num{color:var(--ink-soft);}
+
+  /* Lezione + evento nello stesso giorno: mix dei due stili */
+  .cell.training.has-event{
+    border-color:color-mix(in srgb, var(--brass) 55%, var(--line));
+    box-shadow:0 0 0 1px color-mix(in srgb, var(--brass) 35%, transparent), var(--shadow);
+  }
+
   .cell.training.today{border-color:var(--brass); border-width:2px; box-shadow:0 0 0 2px color-mix(in srgb, var(--brass) 25%, transparent);}
   .cell.training.today .num{color:var(--brass); font-weight:700;}
+
+  /* ---- Evento (giorno senza lezione): card evidenziata in tonalità ottone ---- */
+  .cell.event{
+    background:color-mix(in srgb, var(--brass) 15%, var(--surface));
+    border-color:color-mix(in srgb, var(--brass) 45%, var(--line));
+    box-shadow:var(--shadow); cursor:pointer;
+  }
+  .cell.event:hover{border-color:var(--brass);}
+  .cell.event .preview{color:var(--ink);}
 
   .cell.closed{
     background:repeating-linear-gradient(45deg,var(--surface-muted),var(--surface-muted) 5px,color-mix(in srgb, var(--rust-soft) 22%, var(--surface-muted)) 5px,color-mix(in srgb, var(--rust-soft) 22%, var(--surface-muted)) 9px);
@@ -158,10 +198,27 @@
     background:var(--surface); border:1px solid var(--line); border-radius:6px;
     padding:10px 12px; box-shadow:var(--shadow);
   }
-  .lesson-row.past{opacity:.55;}
+  .lesson-row.training{
+    background:color-mix(in srgb, var(--steel) 10%, var(--surface));
+    border-color:color-mix(in srgb, var(--steel) 38%, var(--line));
+  }
+  .lesson-row.training.past{
+    background:repeating-linear-gradient(45deg,
+      color-mix(in srgb, var(--steel-soft) 14%, var(--surface-muted)),
+      color-mix(in srgb, var(--steel-soft) 14%, var(--surface-muted)) 5px,
+      color-mix(in srgb, var(--steel-soft) 23%, var(--surface-muted)) 5px,
+      color-mix(in srgb, var(--steel-soft) 23%, var(--surface-muted)) 9px);
+    border-color:var(--line);
+  }
+  .lesson-row.training.has-event{border-color:color-mix(in srgb, var(--brass) 50%, var(--line));}
   .lesson-row.today{border-color:var(--brass); border-width:2px;}
+  .lesson-row.event-only{
+    background:color-mix(in srgb, var(--brass) 12%, var(--surface));
+    border-color:color-mix(in srgb, var(--brass) 40%, var(--line));
+  }
   .lesson-row.closed{
     background:repeating-linear-gradient(45deg,var(--surface-muted),var(--surface-muted) 5px,color-mix(in srgb, var(--rust-soft) 22%, var(--surface-muted)) 5px,color-mix(in srgb, var(--rust-soft) 22%, var(--surface-muted)) 9px);
+    border-color:var(--line);
   }
   .lesson-row-head{display:flex; align-items:baseline; justify-content:space-between; gap:8px; flex-wrap:wrap;}
   .lesson-row-date{font-weight:700; font-size:13.5px; font-variant-numeric:tabular-nums; text-transform:capitalize;}
@@ -171,9 +228,11 @@
   .lesson-row-body{margin-top:8px; display:flex; flex-direction:column; gap:4px;}
   .lesson-row-field{font-size:12.5px; line-height:1.4; color:var(--ink);}
   .lesson-row-field b{
+    display:inline-flex; align-items:center; gap:5px;
     color:var(--ink-soft); font-weight:700; text-transform:uppercase; font-size:10px;
     letter-spacing:.04em; margin-right:5px;
   }
+  .lesson-row-field b .cat-dot{width:6px; height:6px;}
   .lesson-row-field.placeholder{color:var(--ink-soft); font-style:italic;}
   .lesson-row-events{margin-top:8px; padding-top:8px; border-top:1px dashed var(--line);}
 
@@ -183,7 +242,7 @@
 
   :root[data-filter="allenamenti"] .events-section{display:none;}
   :root[data-filter="allenamenti"] .lesson-row.event-only{display:none;}
-  :root[data-filter="eventi"] .cell.training{opacity:.3;}
+  :root[data-filter="eventi"] .cell.training:not(.has-event){opacity:.3;}
   :root[data-filter="eventi"] .cell.training.today{opacity:1;}
   :root[data-filter="eventi"] .lesson-row.training-only{display:none;}
 
@@ -208,11 +267,13 @@
   .modal h3{font-size:20px; margin-bottom:16px; padding-right:20px;}
   .modal-fields{margin:0; display:flex; flex-direction:column; gap:12px;}
   .modal-fields dt{
+    display:flex; align-items:center; gap:6px;
     font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft); font-weight:700;
     margin-bottom:3px;
   }
+  .modal-fields dt .cat-dot{width:7px; height:7px;}
   .modal-fields dd{margin:0; font-size:14.5px; color:var(--ink);}
-  .modal-fields dd.placeholder{color:var(--ink-soft); font-style:italic;}
+  .modal-fields-empty{margin:0; font-size:13.5px; color:var(--ink-soft); font-style:italic;}
 
   .modal-events{margin:0; display:flex; flex-direction:column; gap:14px;}
   .modal-events:not(:empty){margin-top:16px; padding-top:16px; border-top:1px solid var(--line);}
@@ -265,6 +326,13 @@
       <span class="legend-item"><span class="swatch sw-past"></span>Svolta</span>
       <span class="legend-item"><span class="swatch sw-closed"></span>Festivo — chiuso</span>
       <span class="legend-item"><span class="swatch sw-event"></span>Evento</span>
+    </div>
+
+    <div class="legend-row legend-activities">
+      <span class="legend-item"><span class="cat-dot cat-atletica"></span>Prep. Atletica</span>
+      <span class="legend-item"><span class="cat-dot cat-tecnica"></span>Tecnica</span>
+      <span class="legend-item"><span class="cat-dot cat-teoria"></span>Teoria</span>
+      <span class="legend-item"><span class="cat-dot cat-sparring"></span>Sparring</span>
     </div>
 
     <div class="control-row">
@@ -468,8 +536,14 @@
     return wd.charAt(0).toUpperCase()+wd.slice(1)+" "+d.getDate()+" "+ITALIAN_MONTHS[d.getMonth()].toLowerCase()+" "+d.getFullYear();
   }
 
+  function formatDateNoWeekday(iso){
+    var parts = iso.split("-").map(Number);
+    var d = new Date(parts[0], parts[1]-1, parts[2]);
+    return d.getDate()+" "+ITALIAN_MONTHS[d.getMonth()].toLowerCase()+" "+d.getFullYear();
+  }
+
   function formatEventDateRange(startIso, endIso){
-    if(!endIso || endIso === startIso) return formatLongDate(startIso);
+    if(!endIso || endIso === startIso) return formatDateNoWeekday(startIso);
     var s = startIso.split("-").map(Number);
     var e = endIso.split("-").map(Number);
     var sDate = new Date(s[0], s[1]-1, s[2]);
@@ -512,24 +586,40 @@
   var lessonIndex = {}; // date -> ordinal number in season
   lessonDates.forEach(function(k, i){ lessonIndex[k] = i+1; });
 
-  function microLine(label, value){
+  function catDot(cat){
+    var d = document.createElement("span");
+    d.className = "cat-dot cat-"+cat;
+    return d;
+  }
+
+  function microLine(cat, value){
     if(!value) return null;
     var s = document.createElement("span");
     s.className = "preview-line";
-    var b = document.createElement("b");
-    b.textContent = label;
-    s.appendChild(b);
-    s.appendChild(document.createTextNode(value));
+    s.appendChild(catDot(cat));
+    var t = document.createElement("span");
+    t.className = "preview-line-text";
+    t.textContent = value;
+    s.appendChild(t);
     return s;
   }
 
-  function fieldLine(label, value, isPlaceholder){
+  function fieldLine(cat, label, value){
+    if(!value) return null;
     var div = document.createElement("div");
-    div.className = "lesson-row-field" + (isPlaceholder ? " placeholder" : "");
+    div.className = "lesson-row-field";
     var b = document.createElement("b");
-    b.textContent = label;
+    b.appendChild(catDot(cat));
+    b.appendChild(document.createTextNode(label));
     div.appendChild(b);
     div.appendChild(document.createTextNode(value));
+    return div;
+  }
+
+  function emptyFieldsNote(){
+    var div = document.createElement("div");
+    div.className = "lesson-row-field placeholder";
+    div.textContent = "Dettagli non ancora assegnati.";
     return div;
   }
 
@@ -571,16 +661,19 @@
       var body = document.createElement("div");
       body.className = "lesson-row-body";
       var ov = LESSON_OVERRIDES[key] || {};
-      body.appendChild(fieldLine("Fisica", ov.fisica || "Da assegnare", !ov.fisica));
-      if(ov.tecnicaAvanzato){
-        body.appendChild(fieldLine("Tecnica — Base", ov.tecnica || "Da assegnare", !ov.tecnica));
-        body.appendChild(fieldLine("Tecnica — Avanzato", ov.tecnicaAvanzato, false));
+      var rowFields = [
+        fieldLine("atletica", "Atletica", ov.fisica),
+        ov.tecnicaAvanzato ? fieldLine("tecnica", "Tecnica — Base", ov.tecnica) : fieldLine("tecnica", "Tecnica", ov.tecnica),
+        ov.tecnicaAvanzato ? fieldLine("tecnica", "Tecnica — Avanzato", ov.tecnicaAvanzato) : null,
+        fieldLine("teoria", "Teoria — Base", ov.teoriaBase),
+        fieldLine("teoria", "Teoria — Avanzato", ov.teoriaAvanzato),
+        fieldLine("sparring", "Sparring", ov.sparring)
+      ].filter(Boolean);
+      if(rowFields.length){
+        rowFields.forEach(function(el){ body.appendChild(el); });
       } else {
-        body.appendChild(fieldLine("Tecnica", ov.tecnica || "Da assegnare", !ov.tecnica));
+        body.appendChild(emptyFieldsNote());
       }
-      body.appendChild(fieldLine("Teoria — Base", ov.teoriaBase || "Da assegnare", !ov.teoriaBase));
-      body.appendChild(fieldLine("Teoria — Avanzato", ov.teoriaAvanzato || "Da assegnare", !ov.teoriaAvanzato));
-      body.appendChild(fieldLine("Sparring", ov.sparring || "Da assegnare", !ov.sparring));
       row.appendChild(body);
     }
 
@@ -659,9 +752,12 @@
         if(isToday) cellClasses.push("today");
       } else if(isHoliday){
         cellClasses.push("closed");
+      } else if(hasEvent){
+        cellClasses.push("event");
       } else {
         cellClasses.push("plain");
       }
+      if(hasEvent) cellClasses.push("has-event");
       if(interactive) cellClasses.push("clickable");
       cell.className = cellClasses.join(" ");
 
@@ -686,12 +782,12 @@
           var stack = document.createElement("span");
           stack.className = "preview-stack";
           var microLines = [
-            microLine("F", ov.fisica),
-            ov.tecnicaAvanzato ? microLine("T-B", ov.tecnica) : microLine("T", ov.tecnica),
-            ov.tecnicaAvanzato ? microLine("T-A", ov.tecnicaAvanzato) : null,
-            microLine("TB", ov.teoriaBase),
-            microLine("TA", ov.teoriaAvanzato),
-            microLine("S", ov.sparring)
+            microLine("atletica", ov.fisica),
+            microLine("tecnica", ov.tecnica),
+            ov.tecnicaAvanzato ? microLine("tecnica", ov.tecnicaAvanzato) : null,
+            microLine("teoria", ov.teoriaBase),
+            microLine("teoria", ov.teoriaAvanzato),
+            microLine("sparring", ov.sparring)
           ];
           microLines.forEach(function(el){ if(el) stack.appendChild(el); });
           if(stack.children.length) cell.appendChild(stack);
@@ -781,13 +877,13 @@
   var modalFields = document.getElementById("modalFields");
   var modalEvents = document.getElementById("modalEvents");
 
-  function field(label, value, opts){
-    opts = opts || {};
+  function field(cat, label, value){
+    if(!value) return null;
     var dt = document.createElement("dt");
-    dt.textContent = label;
+    dt.appendChild(catDot(cat));
+    dt.appendChild(document.createTextNode(label));
     var dd = document.createElement("dd");
     dd.textContent = value;
-    if(opts.placeholder) dd.className = "placeholder";
     var frag = document.createDocumentFragment();
     frag.appendChild(dt);
     frag.appendChild(dd);
@@ -819,16 +915,22 @@
       modalEyebrow.textContent = "Lezione n. "+n+" di "+lessonDates.length;
       modalTitle.textContent = formatLongDate(key);
       var ov = LESSON_OVERRIDES[key] || {};
-      modalFields.appendChild(field("Preparazione fisica", ov.fisica || "Da assegnare", {placeholder: !ov.fisica}));
-      if(ov.tecnicaAvanzato){
-        modalFields.appendChild(field("Tecnica — Corso Base", ov.tecnica || "Da assegnare", {placeholder: !ov.tecnica}));
-        modalFields.appendChild(field("Tecnica — Corso Avanzato", ov.tecnicaAvanzato));
+      var modalFieldFrags = [
+        field("atletica", "Preparazione Atletica", ov.fisica),
+        ov.tecnicaAvanzato ? field("tecnica", "Tecnica — Corso Base", ov.tecnica) : field("tecnica", "Tecnica", ov.tecnica),
+        ov.tecnicaAvanzato ? field("tecnica", "Tecnica — Corso Avanzato", ov.tecnicaAvanzato) : null,
+        field("teoria", "Teoria — Corso Base", ov.teoriaBase),
+        field("teoria", "Teoria — Corso Avanzato", ov.teoriaAvanzato),
+        field("sparring", "Sparring", ov.sparring)
+      ].filter(Boolean);
+      if(modalFieldFrags.length){
+        modalFieldFrags.forEach(function(f){ modalFields.appendChild(f); });
       } else {
-        modalFields.appendChild(field("Tecnica", ov.tecnica || "Da assegnare", {placeholder: !ov.tecnica}));
+        var noneP = document.createElement("p");
+        noneP.className = "modal-fields-empty";
+        noneP.textContent = "Dettagli non ancora assegnati.";
+        modalFields.appendChild(noneP);
       }
-      modalFields.appendChild(field("Teoria — Corso Base", ov.teoriaBase || "Da assegnare", {placeholder: !ov.teoriaBase}));
-      modalFields.appendChild(field("Teoria — Corso Avanzato", ov.teoriaAvanzato || "Da assegnare", {placeholder: !ov.teoriaAvanzato}));
-      modalFields.appendChild(field("Sparring", ov.sparring || "Da assegnare", {placeholder: !ov.sparring}));
     } else {
       modalEyebrow.textContent = dayEvents.length > 1 ? "Eventi" : "Evento";
       modalTitle.textContent = formatLongDate(key);
